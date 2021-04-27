@@ -10,7 +10,9 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.client.methods.HttpUriRequest;
+import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.entity.StringEntity;
@@ -21,6 +23,8 @@ import org.apache.http.ssl.TrustStrategy;
 import javax.net.ssl.SSLContext;
 import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.Map;
@@ -34,8 +38,10 @@ public class RestApiClient implements Serializable {
     private int readTimeout;
     private String charset;
     private Map<String, String> headers;
+    private Map<String, String> queryParameters;
 
-    public RestApiClient(int conTimeout, int readTimeout, String charset, Map<String, String> headers) {
+    public RestApiClient(int conTimeout, int readTimeout, String charset, Map<String, String> headers
+            , Map<String, String> queryParameters) {
         this.conTimeout = conTimeout;
         this.readTimeout = readTimeout;
 
@@ -45,6 +51,7 @@ public class RestApiClient implements Serializable {
         } else {
             this.charset = charset;
         }
+        this.queryParameters = queryParameters;
     }
 
     public void addHeaders(HttpUriRequest req) {
@@ -56,10 +63,19 @@ public class RestApiClient implements Serializable {
         }
     }
 
-    public String processGETRequest(String url) {
+    public String processGETRequest(String url) throws URISyntaxException {
         log.info("executing get request");
         HttpGet req = new HttpGet(url);
         addHeaders(req);
+        URIBuilder uriBuilder = new URIBuilder(req.getURI());
+        if (Objects.nonNull(queryParameters)) {
+            for (Map.Entry<String, String> entries : queryParameters.entrySet()) {
+                uriBuilder.addParameter(entries.getKey(), entries.getValue());
+            }
+        }
+        URI uri = uriBuilder
+                .build();
+        ((HttpRequestBase) req).setURI(uri);
         return getRequestData(req);
     }
 
@@ -88,7 +104,6 @@ public class RestApiClient implements Serializable {
                     return true;
                 }
             };
-
             SSLContext sslContext = SSLContextBuilder.create().loadTrustMaterial(null, trustStrategy).build();
             SSLConnectionSocketFactory socketFactory = new SSLConnectionSocketFactory(sslContext, NoopHostnameVerifier.INSTANCE);
             RequestConfig requestConfig = RequestConfig.custom().setConnectTimeout(conTimeout)
@@ -101,6 +116,7 @@ public class RestApiClient implements Serializable {
             //this is for proxy settings
             httpClientBuilder.useSystemProperties();
             HttpClient httpClient = httpClientBuilder.build();
+
             response = httpClient.execute(request);
             if (response.getStatusLine().getStatusCode() == 200) {
                 HttpEntity httpEntity = response.getEntity();

@@ -1,0 +1,22 @@
+{
+  "applicationList": [
+    {
+      "name": "test",
+      "camr": "test",
+      "appSubscriptionID": "test1",
+      "registerTimestamp": "time",
+      "maxPageSize": 10,
+      "status": "",
+      "entityEnrolled": []
+    },
+    {
+      "name": "test",
+      "camr": "test",
+      "appSubscriptionID": "test1",
+      "registerTimestamp": "time",
+      "maxPageSize": 10,
+      "status": "",
+      "entityEnrolled": []
+    }
+  ]
+}

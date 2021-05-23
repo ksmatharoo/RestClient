@@ -122,7 +122,9 @@ public class RestApiClient implements Serializable {
                 HttpEntity httpEntity = response.getEntity();
                 content = IOUtils.toString(httpEntity.getContent(), charset);
             } else {
-                content = "Failed with return Code : " + response.getStatusLine().getStatusCode();
+                log.error("Failed with return Code : " + response.getStatusLine().getStatusCode());
+                throw new RuntimeException("API returned non success code " +
+                        response.getStatusLine().getStatusCode());
             }
         } catch (Exception e) {
             log.error("exception caught : {}", e.toString());

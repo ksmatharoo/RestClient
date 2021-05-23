@@ -2,10 +2,10 @@ package org.ksm;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.ksm.reponses.AppList;
 
 import java.io.FileReader;
 import java.io.FileWriter;
-import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -29,30 +29,32 @@ public class RestApiClientTest {
     }
 
     @Test
-    public void jsonTest() throws IOException {
-        JsonUtils.ApplicationList obj = new JsonUtils.ApplicationList(
+    public void jsonTest() throws Exception {
+        AppList.ApplicationList obj = new AppList.ApplicationList(
                 "test", "test", "test1", "time", 10,
                 "", Collections.EMPTY_LIST
         );
-        JsonUtils.ApplicationList obj1 = new JsonUtils.ApplicationList(
+        AppList.ApplicationList obj1 = new AppList.ApplicationList(
                 "test", "test", "test1", "time", 10,
                 "", Collections.EMPTY_LIST
         );
-        List<JsonUtils.ApplicationList> list = new ArrayList<>();
+        List<AppList.ApplicationList> list = new ArrayList<>();
         list.add(obj);
         list.add(obj1);
-        JsonUtils.AppResponse1 appResponse1 = new JsonUtils.AppResponse1(list);
+        AppList appResponse1 = new AppList(list);
 
-        String s = JsonUtils.objectToString(appResponse1);
+        JsonCodec<AppList> jsonCodec = new JsonCodec();
+
+        String s = jsonCodec.objectToString(appResponse1);
         System.out.println(s);
 
         FileWriter fileWriter = new FileWriter("src/test/resources/out.json");
         fileWriter.write(s);
         fileWriter.close();
 
-        JsonUtils.AppResponse1 appResponse11 = JsonUtils.jsonToObj(s);
-        JsonUtils.AppResponse1 appResponse12 = JsonUtils.
-                jsonToObj(new FileReader("src/test/resources/out.json"));
+        AppList appResponse11 = jsonCodec.jsonToObj(s, AppList.class);
+        AppList appResponse12 = jsonCodec.
+                jsonToObj(new FileReader("src/test/resources/out.json"), AppList.class);
 
         Assert.assertEquals("compare", appResponse11.toString(), appResponse12.toString());
     }

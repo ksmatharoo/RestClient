@@ -6,4 +6,5 @@ public class Constants {
     public static final String COIN_MARKET_CAP_URL = "coinMarket.url";
     public static final String API_KEY = "api.key";
     public static final String API_KEY_VALUE = "apiKey.value";
+    public static final String WAZIRX_URL = "wazirx.url";
 }

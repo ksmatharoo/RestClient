@@ -18,13 +18,16 @@ import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.ssl.SSLContextBuilder;
+import org.apache.http.ssl.SSLContexts;
 import org.apache.http.ssl.TrustStrategy;
 
 import javax.net.ssl.SSLContext;
+import java.io.FileInputStream;
 import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.security.KeyStore;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.Map;
@@ -104,7 +107,21 @@ public class RestApiClient implements Serializable {
                     return true;
                 }
             };
-            SSLContext sslContext = SSLContextBuilder.create().loadTrustMaterial(null, trustStrategy).build();
+
+           /**
+            * this can be used to use the jks file
+            * load keystore and create custom sslcontext and use in ssl factory
+           KeyStore keyStore = KeyStore.getInstance(KeyStore.getDefaultType()); //default is jks type
+            keyStore.load(new FileInputStream("jks file path"), "password to key store".toCharArray()));
+            SSLContexts.custom().
+                    loadKeyMaterial(keyStore, "password to key store".toCharArray()).
+                    loadTrustMaterial(null, trustStrategy).build();
+            */
+
+            SSLContext sslContext = SSLContextBuilder.
+                    create().
+                    loadTrustMaterial(null, trustStrategy).build();
+
             SSLConnectionSocketFactory socketFactory = new SSLConnectionSocketFactory(sslContext, NoopHostnameVerifier.INSTANCE);
             RequestConfig requestConfig = RequestConfig.custom().setConnectTimeout(conTimeout)
                     .setConnectionRequestTimeout(readTimeout)

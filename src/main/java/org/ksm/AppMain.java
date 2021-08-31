@@ -1,14 +1,18 @@
 package org.ksm;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.Options;
 import org.ksm.reponses.CoinMarketCapResp;
+import org.ksm.reponses.WazirxResp;
 import org.ksm.reponses.ZebPayResponse;
 
+import java.net.URISyntaxException;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class AppMain {
     public static void main(String[] args) throws Exception {
@@ -17,6 +21,8 @@ public class AppMain {
 
         CommandLine cmd = parser.parse(options, args, false);
         Properties properties = OptionsParser.retrieveAllProperties(cmd, null);
+
+        getData(properties);
 
         RestApiClient restApiClient = new RestApiClient(500, 500,
                 null, null, null);
@@ -107,6 +113,26 @@ public class AppMain {
         });
         System.out.println("");
         System.out.println("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+
+    }
+
+
+    public static void getData(Properties properties) throws Exception {
+        RestApiClient restApiClient = new RestApiClient(500, 500,
+                null, null, null);
+        final String response = restApiClient.processGETRequest(properties.getProperty(Constants.WAZIRX_URL));
+        JsonCodec<WazirxResp> jsonCodec = new JsonCodec<>();
+
+        TypeReference<HashMap<String, WazirxResp>> typeRef
+                = new TypeReference<HashMap<String, WazirxResp>>() {};
+
+        HashMap<String, WazirxResp> stringItemHashMap = jsonCodec.getMapper().readValue(response, typeRef);
+        List<Map.Entry<String, WazirxResp>> inr = stringItemHashMap.entrySet().stream()
+                .filter(obj -> obj.getValue().getQuote_unit().contentEquals("inr"))
+                .collect(Collectors.toList());
+
+        System.out.println(stringItemHashMap);
+
 
     }
 
